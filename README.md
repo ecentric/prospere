@@ -1,3 +1,2 @@
 # prospere
-old project
-For storing files
+Old project for storing files
