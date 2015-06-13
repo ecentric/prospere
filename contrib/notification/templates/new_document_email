@@ -1,0 +1,3 @@
+Пользователь <font color="#1b5509"> {{ document_username }} </font> добавил новый файл - <font color="#1b5509"> {{ document_title }} </font>.<br />
+http://{{ site }}{{ link }}
+

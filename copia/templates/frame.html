@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+<link rel="icon" type="image/png" href="{{ STATIC_URL }}images/favicon.png" />
+<title>Copia</title>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" type="text/css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/rating/jquery.rating.css" type="text/css" />
+<script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.mini.js"></script>
+<script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.color.js"></script>
+<script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.autocomplete.js"></script>
+<script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.bookmarks.js"></script>{% block head %}{% endblock %}
+<style type="text/css">
+.ac_results {
+    text-align: left;
+	padding: 0px;
+	border: 1px solid #575757;
+	background-color: white;
+	overflow: hidden;width: 275px;
+}
+.ac_results ul {
+	width: 100%;
+	list-style-position: outside;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.ac_results iframe {
+	display:none;/*sorry for IE5*/
+	display/**/:block;/*sorry for IE5*/
+	position:absolute;
+	top:0;
+	left:0;
+	z-index:-1;
+	filter:mask();
+	width:3000px;
+	height:3000px;
+}
+.ac_results li {
+	position:relative;
+    margin: 0px;
+	padding: 2px 5px;
+	cursor: pointer;
+	display: block;
+	width: 100%;
+	font: menu;
+	font-size: 12px;
+	overflow: hidden;
+}
+.ac_over {
+	background-color: #d4d4d4;
+	color: black;
+}
+</style>
+<script type="text/javascript">
+    {% if request.user.is_authenticated %}
+        $(document).ready(function(){     
+            $('#panel_searcher').bookmark_autocomplete({
+                user_id : {{ request.user.id }},
+                get_bookmarks_url : "{% url prospere_get_bookmarks %}",
+                text_input_selector : "#query",
+                user_page : "{% url prospere_user_page 0 %}"
+            });
+        });
+    {% endif %}
+</script>
+</head>
+<body>
+
+<div id="panel">
+	<div id="wrapper">
+    {% block panel%}
+        <div id="panel_leftside">
+            {% block panel_leftside %}
+            {% endblock %}
+        </div>
+	    {% if request.user.is_authenticated %}
+		    <div id="panel_rightside">
+	            <a id="logout" href="{% url prospere_logout %}" title="Выйти"></a>
+	            <a id="settings" href="{% url prospere_my_profile %}" title="Настройки"></a>
+	            <a id="login" href="{% url prospere_user_page request.user.username %}" title="Моя страница"></a>
+		    </div>
+	    {% else %}
+			    <form id="panel_rightside" action="{% url prospere_login %}" method="post">
+				    <fieldset>{% csrf_token %}
+                        <input type="image" id="input_login" src="{{ STATIC_URL }}images/login.png" />
+					    <label for="id_login_username" style="color:#c5cbc3;">Логин:</label>
+					    <input id="id_login_username" type="text" maxlength = "30" name="username" /><br />
+					    <label for="id_password" style="color:#353834;">Пароль:</label>
+					    <input id="id_password" type="password" maxlength = "30" name="password" />
+					    <input type="hidden" name="next_url" value="{{ current_url }}" />
+				    </fieldset>
+			    </form>
+			    <br class="clear" />
+	    {% endif %}
+    {% endblock %}
+	</div>
+</div>
+
+<div id="canvas">
+    {% block canvas %}
+	<div id="basis">
+		{% block basis %}
+		{% endblock %}
+	</div>
+    <div id="footer"></div>
+    {% endblock %}
+</div>	
+</body>
+</html>

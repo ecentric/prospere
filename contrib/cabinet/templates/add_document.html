@@ -1,0 +1,124 @@
+﻿{% extends "document_canvas.html" %}
+{% block head %}{{ form.media }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.uploadProgress.js"></script> 
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.filestyle.js"></script> 
+    <script type="text/javascript">
+    $(document).ready(function(){
+            $('#id_file').show();
+            $("#id_file").filestyle({ 
+                 image: "{{ STATIC_URL }}/images/choose_file.png",
+                 imageheight : 23,
+                 imagewidth : 40,
+                 width : 400,
+                 style : {"float": "left", "margin-left":'20px', "margin-right":'60px'}
+            });
+            $('#save_document_button').click(function(){
+                $("#title_error").html('');
+                $("#description_error").html('');
+                $("#file_error").html('');
+                var flag = true;
+                if ($("#id_title").val().length < 5) {
+                    $("#title_error").html("Не менее 5-ти символов.");
+                    flag = false;
+                }
+                if ($("#id_html_description_ifr").contents().text().length < 10) {
+                    $("#description_error").html("Не менее 10-ти символов.");
+                    flag = false;
+                }
+                if ($("#id_file").val().length == 0){
+                    $("#file_error").html("Выберите файл.");
+                    flag = false;
+                }
+                return flag;
+            });
+
+	        $('#upload_form').uploadProgress({
+                validation: function(){
+                    return true;
+                },
+		        start: function() {
+			        $("#save_document").hide();
+                    $("#save_progress").show();
+                    $('#progressbar').hide();
+                    $('#indicator').progressbar(0);
+		        },
+		        error: function(upload) {
+                    $("#save_progress").hide();
+                    $("#save_document").show();
+                    $("#file_error").html('Превышен разме файла.');
+                    //$('#upload_form')[0].reset();
+		        },
+		        uploading: function(upload) {
+                    $("#upload_percent").html(upload.percents + '%');
+                    $('#indicator').progressbar(upload.percents);
+                    if ($('#progressbar').is(":hidden")) $('#progressbar').fadeIn(500);
+                    if (upload.percents == 100){
+                        $("#progress_saving").show();
+                    }
+		        }
+	        });
+    });
+    </script>
+    <style type="text/css">
+        .form_error{ color:red; }
+        #save_document{}
+            #save_document .bright_button{float:right; margin:0px;}
+	        #save_document textarea{
+		        width: 898px;height: 350px;
+                margin:0px; padding:0px;
+		        margin-bottom: 15px;
+	        }
+            #save_document #id_file{ border: none; display:none;}
+            #save_document #title_label{ width : auto; margin-right: 10px;}
+            #save_document #id_title{ width : 250px; }
+    </style>
+{% endblock %}
+{% block content %}
+    {% load copia_filters %}
+    {% include "segments/upload_progress.html" %}
+	<div id="save_document">
+	    <form name="create_document" id="upload_form" action="{{ current_url }}" method="post" enctype = "multipart/form-data">
+		    <fieldset>{% csrf_token %}
+		        <div class="field_wrapper">
+			        <label id="title_label" for="id_title">Введите название:</label>
+			        {{ form.title }}
+			        <div class="field_error" id="title_error">{{ form.errors.title }}</div>
+                    <input type="submit" value="Сохранить" id="save_document_button" class="bright_button" />
+			        <br class="clear" />
+		        </div>
+		
+		        <label for="id_description">Описание:</label>
+		        <span class="form_error" id="description_error">{{ form.errors.html_description }}</span>
+		        {{ form.html_description }}<br />
+
+                {% if storage.is_store %}
+                    <script type="text/javascript">
+                        function SwitchMode() {
+                            if(document.getElementById('id_is_free').checked) {
+	                            document.getElementById("id_cost").disabled = true;
+	                        } else {
+                           	    document.getElementById("id_cost").disabled = false;
+	                        }
+                        }
+                        window.onload = SwitchMode;
+                    </script>
+                    <div class="box">
+                        <input type="checkbox" id="id_is_free" name="is_free" onclick="SwitchMode()" {% if is_free %}checked=""{% endif %} /> 	
+                        <label for="id_is_free"> Бесплатно  </label>
+                        <div class="r"><label for="id_cost">Стоимость </label>{{ form.cost }}грн.<br class="clear" />
+                            <span class="form_error">{{ form.errors.cost }}</span><br class="clear" />
+                        </div>
+                    </div>
+                {% endif %}
+                    {% if file_not_requred %}
+                        <div class="accentuated_box">
+                            Не выбирайте файл, если не хотите заменить существующий.
+                        </div>
+                    {% endif %}
+			        <div id="file_error" class="form_error">{{ form.errors.file }}</div>
+			        <label for="id_file" style="float:left; margin-top:2px;">Выберите файл:</label>{{ form.file }}
+                    <div style="float:left; margin-top:2px;">свободно: {{ mem_state|convert_byte }}mB</div>
+            </fieldset>
+	    </form>
+	</div>
+{% endblock %}

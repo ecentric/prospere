@@ -1,0 +1,104 @@
+{% extends "frame.html" %}
+{% block head %}
+<script type="text/javascript">
+    $(document).ready(function(){     
+            $('#query').click(function(){
+                if (this.value == 'Поиск') {this.style.color='#000'; this.value='';}
+                else this.style.color='#000';
+            }).blur(function(){
+                if (this.value==''){ this.style.color='#666'; this.value='Поиск'; }
+            });
+            $('#user_message').hover(function(){ $('#'+this.id).hide(1600); });
+    });
+</script>
+<style type="text/css">
+    #text_email { 
+        color: #811919;
+        font-size: 1.1em;
+    }
+
+    form#panel_searcher{
+        width: 450px; margin-left:141px; margin-top:18px; float:right;
+    }
+        form#panel_searcher #query{
+	        width: 262px; height: 15px; float:right; padding-left:5px; padding-right:5px;
+            font: normal 15px Arial, sans-serif;
+            -webkit-border-radius : 3px; -moz-border-radius : 3px; border-radius : 3px;
+            border : 1px solid #2a2a2a; padding : 4px 5px 4px 5px;
+        }
+        form#panel_searcher #go{
+            cursor: pointer; border : 0px;
+            outline : none; float:right;
+            margin-left:5px; margin-top:0px; padding-top: 3px;
+            background: url({{ STATIC_URL }}css/images/go_small.png) no-repeat;
+            width: 70px; height:25px;
+        }
+
+    #list { background: url({{ STATIC_URL }}css/images/list.png) no-repeat;
+            position:fixed; top:0px; margin-top:0px; margin-left:170px; width:600px; height:385px; z-index:-2;}
+    #list form {position: absolute; top:100px; left:220px; text-align:left;}
+        #list form input{height:18px; width:200px; font: normal 18px Arial, sans-serif;
+            -webkit-border-radius : 3px; -moz-border-radius : 3px; border-radius : 3px;
+            border : 1px solid #294b20; padding : 6px 5px 6px 5px;}
+        #list form .bright_button{width:212px; height:30px;padding-top: 3px;}
+        #list form label{color:black;}
+        #list #links {position: absolute; top:270px; left:260px; text-align:left;}
+            #list #links a{color:black;}
+
+    #user_message{
+            position:fixed; top:70px; width:980px; height:24px;
+            background-color: black; color: white; cursor:default;
+            opacity: 0.6;filter:alpha(opacity=60); -moz-opacity: 0.6; -khtml-opacity: 0.6;
+            margin-bottom: 25px; padding-top:3px;
+            -webkit-border-radius : 5px; -moz-border-radius : 5px; border-radius : 5px;
+            -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2), 0 0 15px rgba(0, 0, 0, 0.2);
+            -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2), 0 0 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2), 0 0 15px rgba(0, 0, 0, 0.2);
+	    }
+    #user_message p{padding:0px;margin:0px;padding-top:2px;}
+
+    #logo { background: url({{ STATIC_URL }}css/images/copia_logo.png) no-repeat; 
+            width:200px; height:87px;
+            position:fixed; bottom:40px; margin-left:395px; z-index:-5;}
+
+    #bottom_text{position:fixed; bottom:0px; margin-bottom:20px; margin-left:230px; text-align:center; 
+                 color:black; z-index:-5;}
+</style>
+{% endblock %}
+
+{% block panel %}
+    <form id="panel_searcher" action="{% url prospere_search %}" method="get">
+        <fieldset>
+	        <input type="submit" id="go" value="" />
+	        <input id="query" type="text" maxlength = "40" name="query" style="color: #666" value="Поиск" />
+        </fieldset>
+    </form>
+{% endblock %}
+
+{% block canvas %}
+	{% if message %}
+		<div id="user_message">
+			<p>{{ message.text }}</p>
+		</div>
+	{% endif %}
+    <div id="list">
+	    <form id="panel_rightside" action="{% url prospere_login %}" method="post">
+			    <fieldset>{% csrf_token %}
+				    <label for="id_login_username">Логин:</label><br />
+				    <input id="id_login_username" type="text" maxlength = "30" name="username" /><br />
+				    <label for="id_password">Пароль:</label><br />
+				    <input id="id_password" type="password" maxlength = "30" name="password" /><br />
+				    <input type="hidden" name="next_url" value="{{ current_url }}" /><br />
+				    <input type="submit" class="bright_button" value="вход" />
+			    </fieldset>
+        </form><br class="clear" />
+        <div id="links">
+            <a href="{% url registration_register %}">Регистрация</a><br />
+            <a href="{% url prospere_password_reset %}">Забыли пароль?</a>
+        </div>
+    </div>
+    <div id="logo"></div>
+    <div id="bottom_text">
+    <div class="indent"></div>Все вопросы и предложения принимаются на <span id="text_email">info@copia.org.ua.</span><br />
+    </div>
+{% endblock %}

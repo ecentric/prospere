@@ -1,0 +1,120 @@
+﻿{% extends "big_canvas.html" %}
+{% block head %}
+    <style type="text/css">
+        #registration {text-align:center;}
+        #registration h1{ text-align:center; color:#6b6b6b;}
+        #registration #rules{ font: normal 1.1em Times New Roman, Arial, sans-serif; text-align:left; 
+                              width:700px;margin:0 auto 0 auto; }
+        #registration form{margin:0 auto 0 auto; width:700px; text-align:left;}
+    </style>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
+    <script type="text/javascript">
+	    function unblock_page(){$.unblockUI();}
+        function block_page(){
+            $.blockUI({ message: 'Подождите пожалуйста..', overlayCSS: { opacity: .4 }, 
+            css: {  border: 'none', 
+                    padding: '15px', 
+                    backgroundColor: '#000', 
+                    '-webkit-border-radius': '10px', 
+                    '-moz-border-radius': '10px', 
+                    'border-radius' : '10px',
+                    opacity: .7, 
+                    color: '#fff' } });
+        }
+        var check_username_url = "{% url prospere_check_username %}";
+        var occupied_names = [];
+        $(document).ready(function(){
+            $('#reg_buttom').click(function(){
+                $('#error_password1').html('');
+                $('#error_password2').html('');
+                $('#error_email').html('');
+                $('#error_username').html('');
+                var form = $('#reg_form');
+                var submit = true;
+
+                if ( $('#id_username').val().length < 4 ){
+                    $('#error_username').html('Логин слишком короткий.');
+                    submit = false;
+                }
+                var email = $('#id_email').val();
+                if ( email.length < 3 || email.indexOf('@') == -1 || email.indexOf('.') == -1){
+                    $('#error_email').html('Укажите правильный email.');
+                    submit = false;
+                }
+                if ( $('#id_password1').val().length < 5 ){
+                    $('#error_password1').html('Пароль слишком короткий.');
+                    submit = false;
+                }
+                if ($('#id_password1').val() != $('#id_password2').val() ) {
+                    $('#error_password2').html('Пароли не совпадают.');
+                    submit = false;
+                }
+                var username = $('#id_username').val()
+                if (submit) {
+                    for( var i = 0; i < occupied_names.length; i++ )
+                        if (occupied_names[i] == username){
+                            $('#error_username').html('Этот логин уже занят.');
+                            return false;
+                        }
+                    block_page();
+                    $.get(check_username_url, { username : $('#id_username').val() },  function(data){
+                        if (data.success && !data.username_free){
+                            $('#error_username').html('Этот логин уже занят.');
+                            occupied_names.push($('#id_username').val());
+                            unblock_page();
+                        } else {form.submit();}
+                    }).error(function(){form.submit()});
+                    return false;
+                }
+                return false;
+            })
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div id="registration">
+        <h1>Следует помнить:</h1>
+	    <div class="accentuated_box shadow-box rounding" style="margin-bottom:20px;">
+            <div id="rules">
+		    1. Предоставленные данные, кроме email и личных файлов, будут доступны всем пользователям.<br />
+		    2. Запрещается употреблять не нормативную лексику.<br />
+		    3. Запрещается распространять спам, рекламу, вирусы, материалы, нарушающие авторские права. <br />
+            4. В случае нарушения правил акаунт пользователя будет удален, а email будет закрыт для регистрации.<br /><br />
+		    Заполните поля для регистрации. Придерживайтесь правил и уважайте окружающих!
+            </div>
+	    </div>
+    <form id="reg_form" method="post" action="">
+        <fieldset>{% csrf_token %}
+	    <div class="field_wrapper">
+		    <label for="id_username" class="l">Логин:</label>
+		    {{ form.username }}
+		    <div class="field_error"  id="error_username">{{ form.username.errors }}</div>
+		    <br class="clear" />
+        </div>
+        
+	    <div class="field_wrapper">
+		    <label for="id_email" class="l">E-mail:</label>
+        	{{ form.email }}
+        	<div class="field_error"  id="error_email">{{ form.email.errors }}</div>
+        	<br class="clear" />
+        </div>
+        
+	    <div class="field_wrapper">
+		    <label for="id_password1" class="l">Пароль:</label>
+        	{{ form.password1 }}
+        	<div class="field_error"  id="error_password1">{{ form.password1.errors }}</div>
+        	<br class="clear" />
+        </div>
+        	
+	    <div class="field_wrapper">
+		    <label for="id_password2" class="l">Повторите пароль:</label>
+		    {{ form.password2 }}
+		    <div class="field_error" id="error_password2">{{ form.password2.errors }}</div>
+		    <br class="clear" />
+	    </div>
+	    <input id="reg_buttom" type="submit" class="bright_button" value='Присоединиться ' />
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

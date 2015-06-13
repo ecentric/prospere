@@ -1,0 +1,26 @@
+﻿{% extends "big_canvas.html" %}
+
+{% block head %}
+<style type="text/css">
+    #reset_passwd{text-align:center;color:#222a20;}
+    #reset_passwd form {width:700px;margin:0 auto 0 auto; text-align:left;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="reset_passwd">
+    <div class="note_box"><p>Укажите e-mail, который Вы использовали при регистрации.</p></div>
+    <form action="" method="post">
+        <fieldset>{% csrf_token %}
+	        <div class="field_wrapper">
+		        <label id="email_label" for="id_email">Ваш email:</label>
+		        {{ form.email }}
+		        <div class="field_error">{{ form.errors.email }}</div>
+		        <br class="clear" />
+	        </div>
+	        <input type="submit" class="bright_button" value="Далее" />
+        </fieldset>
+    </form><br /><br />
+    В письме, пришедшем на Ваш email, будет указан Ваш login и будет присутствовать ссылка<br /> на страницу для изменения пароля.<br />
+</div>
+{% endblock %}

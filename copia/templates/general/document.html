@@ -1,0 +1,128 @@
+{% extends "user_canvas.html" %}
+{% block head %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.rating.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.comments_tree.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
+	<script type="text/javascript">
+        // for notification
+        //var comment_tree;
+		$(document).ready(function(){ 
+            var file_url = "{{ document.get_file_url }}".toLowerCase();
+            if(file_url.indexOf('.exe') != -1 || file_url.indexOf('.bat') != -1 || file_url.indexOf('.com') != -1 ||
+               file_url.indexOf('.scr') != -1 || file_url.indexOf('.pif') != -1) {
+               $('#warning_file_type').show();
+            }
+
+			document.comment_tree = $('#comments').comments_tree({
+                                get_comments_url: '{% url prospere_get_comment_tree content_type document.id %}',
+                                post_fields : {% autoescape off %}{{ comment_form.json_hidden }}{% endautoescape %},
+                                post_comment_url: '{% url prospere_post_comment_ajax %}',
+                                edit_comment_url: '{% url prospere_edit_comment_ajax %}',
+                                delete_comment_url: '{% url prospere_delete_comment_ajax %}',
+                                user_id : {% if request.user.is_authenticated %} {{ request.user.id }} {% else %} false {% endif %}, 
+                                absolute_permission : {% if document.user == request.user %} true {% else %} false {% endif %},
+                                csrf : '{{ csrf }}',
+                                is_authenticated : {% if request.user.is_authenticated %} true {% else %} false {% endif %} });
+            /* rating */
+		    $('#rating').show();
+		    $('#count_vote').show();
+			$('#rating').rating({ image: '{{ STATIC_URL }}images/stars_small.png',
+								  url: '{% url prospere_vote %}',
+								  count_changed:function(votes){
+								  	$('#control_panel > #count_vote').html('Проголосовали: ' + votes);
+								  },
+								  readOnly : {{ read_only_vote|lower }} });
+		});
+	</script>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/rating/jquery.rating.css" type="text/css" />
+    <style type="text/css">
+    #document {
+	    position: relative;
+	    overflow: hidden;
+    }
+	    #document #title{ text-align:center; font:normal 1.5em Arial,sans-serif; margin-bottom: 10px; }
+	    #document #description{
+		    margin-left: 15px;
+            font:normal 1.1em Times New Roman, serif;
+		    overflow: hidden;
+	    }
+		    #document #description table{
+			    border-collapse: collapse;
+			    width: auto;
+			    border: 1px solid #9b9b9b;
+		    }
+			    #document #description table th,td{	padding:0.1em 0.8em;}
+			    #document #description table tr:hover{background: none;}
+	    /* #document textarea {width: 740px;height: 80px;display: block;margin-bottom: 15px;} */
+	    #document label{display:block;}
+	    #document #control_panel{display:inline-block;padding:2px 15px;border:1px solid #CFCFCF;}
+        #document #control_panel a{margin-top:2px;}
+	    #document #control_panel .text{font:normal 0.8em Arial, sans-serif;padding: 4px 15px;}
+
+    #comments{font:normal 1.1em Times New Roman, serif;}
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% load copia_filters %}
+	<div id="document">
+
+		<div class="box" style="padding-top:0px; margin-bottom:12px; margin-left:7px;">
+			<a style="font-size:1.3em;" href="{% url prospere_user_page user.username %}">{{document.user.username}}</a>
+            <span style="color:#2e312f;">
+                {% for section in document_path %}
+                    - {{ section.caption }}
+                {% endfor %}
+            </span>
+        </div>
+		<div id="title">
+			{{ document.title }}
+		</div>
+        {% autoescape off %}
+            <div id="description">{{ document.html_description|safe }}</div>
+        {% endautoescape %}<br />
+        
+        {% if allow_get_file and document.get_file_url %}
+            <div class="small_warning not_visible" id="warning_file_type"><p>Файл является исполняемым.</p>
+            </div>
+            {% if document.is_free %}
+                <div id="control_panel" class="rounding">
+                	<a class="l" href="{{ document.get_file_url }}">Скачать</a>
+                	<div class="text l">{{ document.file_size|convert_byte }}mB - {{ document.creation_date }}</div>
+                	<form id="rating" class="not_visible l" action="post">
+                		<fieldset>{% csrf_token %}
+							{{ vote_form.as_p }}
+                		</fieldset>
+                	</form>
+                	<div id="count_vote" class="not_visible text l">Проголосовали {{ document.count_vote }}</div>
+                </div><br />
+            {% else %}
+                <div class="r">
+                    <div class="small_text">размер файла: {{ document.file_size|convert_byte }}mB
+                    <br />Цена : {{ document.cost }} грн.</div>
+                </div>
+                {% if request.user.is_authenticated %}
+                    <br class="clear" />
+                    <div class="box">
+                        <form class="r" action="{# url prospere_add_to_basket #}" method="post">
+                            <fieldset>{% csrf_token %}
+                                <input type="hidden" name="document_id" value="{{ document.id }}" />
+                                <input type="hidden" name="next" value="{{ current_url }}">
+                                <input class="image_button" type="image" src="{{ STATIC_URL }}images/add_to_basket.png" />
+                            </fieldset>
+                        </form><br class="clear" />
+                    </div>
+                {% else %}
+                    <br class="clear" /><br />
+                    <div class="warning"><p>Войдите либо зарегистрируйтесь чтобы купить.</p></div><br />
+                {% endif %}
+            {% endif %}
+            
+        {% else %}
+            <div class="error"><p>Файл временно недоступен.</p></div>
+        {% endif %}<br />
+
+        <div id="comments"></div>
+
+	</div>
+{% endblock %}

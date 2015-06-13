@@ -1,0 +1,102 @@
+{% extends "frame.html" %}
+
+{% block panel_leftside %}
+    {% include "segments/panel_searcher.html" %}
+{% endblock %}
+
+{% block basis %}
+    {% load copia_filters %}
+    <div id="leftside">
+        {% if user  %}
+            <script type="text/javascript">
+                $(document).ready( function(){
+                	var user_id = {{ user.id }};
+                	$('#delete_bookmark').click(function(){
+                        if (!confirm("Вы уверены, что хотите удалить?") ) return;
+                        $('#delete_bookmark').hide();
+                        $.post( "{% url prospere_delete_bookmark %}", { type: "UR", object : user_id, 
+                                                                        csrfmiddlewaretoken : "{{ csrf }}" },
+                             function( data ) {
+                             	if (data.success){
+                             		$('#add_bookmark').show(200);
+                             	}
+                             }
+                        );
+                	});
+                	$('#add_bookmark').click(function(){
+                		$('#add_bookmark').hide();
+                        $.post( "{% url prospere_add_bookmark %}", { type: "UR", object : user_id, 
+                                                                     csrfmiddlewaretoken : "{{ csrf }}" },
+                             function( data ) {
+                             	if (data.success){
+                             		$('#delete_bookmark').show(200);
+                             	}
+                             }
+                        );
+                	});
+                });
+            </script> 
+            <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.rating.js"></script>
+		    <script type="text/javascript">
+			    $(document).ready(function(){ 
+			        $('#user_rating').show();
+                    $('#rating_substrate').show();
+				    $('#user_rating').rating({ image: '{{ STATIC_URL }}images/stars_small.png',
+									      url: '',
+                                          mark: {{ profile.mark|decimal2float }},
+                                          votes: {{ profile.count_vote }},
+									      readOnly : true });
+					$('#bookmarks_chock').bookmark_chock({
+						chock_caption_selector: "#bookmarks_chock_caption",
+                        chock_caption_text_selector : "#bookmarks_chock_caption_text",
+				    	chock_selector: "#bookmarks_chock",
+                        chock_substance_selector: "#bookmarks_chock_substance",
+                        get_bookmarks_url : "{% url prospere_get_bookmarks %}",
+				    	user_id: {{ user.id }}
+					})
+			    });
+		    </script>
+
+            <div id="internal_block">
+            	<div id="bookmarks_chock" class="shadow-box">
+	                <div id="bookmarks_chock_caption">
+                        <div style="float : left; padding-left : 77px; padding-top : 2px;" 
+                            id="bookmarks_chock_caption_text">Друзья</div>
+                    </div>
+                    <div id="bookmarks_chock_substance" style="display: none;"></div>
+				</div>
+                <div id="picture">
+                    <a href="{% url prospere_user_page user.username %}" title="{{ user.first_name }} {{ user.username}} {{ user.last_name }}" ><img src="{{ profile.get_picture_url }}" alt="Ваша картинка" /></a>
+                        <div id="rating_substrate" class="not_visible"></div>
+                        <div id="user_rating" class="not_visible"></div>
+                </div>
+            	{% if request.user.is_authenticated and request.user != user %}
+	                    {% if add_bookmark %}
+	                        <div id="add_bookmark" class="button">Добавить закладку</div>
+                            <div id="delete_bookmark" class="button not_visible">Удалить закладку</div>
+	                    {% else %}
+	                        <div id="add_bookmark" class="button not_visible">Добавить закладку</div>
+	                    	<div id="delete_bookmark" class="button">Удалить закладку</div>
+	                    {% endif %}
+                {% endif %}
+            </div>
+            {% if request.user.is_authenticated %}
+                <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.notification.js"></script>
+                <script type="text/javascript">
+                    $(document).ready(function(){ 
+	                    $('#notification').notification({ 
+						                      get_notifications_url: '{% url prospere_get_notifications %}',
+						                      delete_notification_url: '{% url prospere_delete_notification %}',
+						                      notif_item_class : 'notif_item',
+                                              csrf : "{{ csrf }}" });
+                    });
+                </script>
+                <div id="notification" class="not_visible"></div>
+            {% endif %}
+        {% endif %}
+    </div>            
+    <div id="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+{% endblock %}

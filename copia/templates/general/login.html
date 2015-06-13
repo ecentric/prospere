@@ -1,0 +1,8 @@
+{% extends "big_canvas.html" %}
+
+{% block content %}
+<div style="color:#222a20;">
+    <div class="warning"><p>Произошла ошибка при входе.</p></div>
+    Повторите попытку или <a href="{% url prospere_password_reset %}">восстановите пароль.</a> <br />После нескольких неправильных попыток вход будет временно заблокирован.
+</div>
+{% endblock %}

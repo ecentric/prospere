@@ -1,0 +1,13 @@
+{% extends "frame.html" %}
+
+{% block panel_leftside %}
+    {% include "segments/panel_searcher.html" %}
+{% endblock %}
+
+{% block basis %}
+    {% load copia_filters %}    
+    <div id="content" style="margin: 0 auto 0 auto; width:900px;">
+        {% block content %}
+        {% endblock %}
+    </div>
+{% endblock %}

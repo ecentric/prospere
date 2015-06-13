@@ -1,0 +1,91 @@
+{% extends "big_canvas.html" %}
+
+{% block head %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.uploadProgress.js"></script> 
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.filestyle.js"></script> 
+    <script type="text/javascript">
+    $(document).ready(function(){ 	
+		    $(function() {
+                $('#id_picture').show();
+                $("#id_picture").filestyle({ 
+                     image: "{{ STATIC_URL }}/images/choose_file.png",
+                     imageheight : 23,
+                     imagewidth : 40,
+                     width : 200,
+                     style : {"float": "left"}
+                });
+			    $('#profile_form').uploadProgress({
+				    start: function() {
+					    $("#change_profile").hide();
+                        $("#id_message").hide();
+                        $("#save_progress").show();
+                        $('#progressbar').hide();
+                        $('#indicator').progressbar(0);
+				    },
+				    error: function(upload) {
+                        $("#save_progress").hide();
+                        $("#change_profile").show();
+                        $("#file_error").html('Превышен разме файла.');
+                        //$('#profile_form')[0].reset();
+				    },
+				    uploading: function(upload) {
+                        $("#upload_percent").html(upload.percents + '%');
+                        $('#indicator').progressbar(upload.percents);
+                        if ($('#progressbar').is(":hidden")) $('#progressbar').fadeIn(500);
+                        if (upload.percents == 100){
+                            $("#progress_saving").show();
+                        }
+				    }
+			    });
+		    });
+	});
+    </script>
+    <style type="text/css">
+        #change_profile{color:#222a20; text-align:center;} 	
+            #change_profile form{width:700px;margin:0 auto 0 auto; text-align:left;}
+            #change_profile form textarea{
+		        width: 720px;
+		        height: 100px;
+		        margin-bottom: 0px;
+	        }
+            #change_profile form#id_picture { border:0px solid #b0b0b0; width:200px; display : none; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% load copia_filters %}
+
+	{% if message %}
+		<div id="id_message" class="{{ message.level }}">
+			<p>{{ message.text }}</p>
+		</div>
+	{% endif %}
+
+    <div id="change_profile" style="text-align:center;">
+
+        <div class="note_box"><p>Введите только те поля, которые хотите изменить. </p>
+        </div>
+
+        <form id="profile_form" action="{% url prospere_save_profile %}" method="post" enctype = "multipart/form-data">
+            <fieldset>{% csrf_token %}
+                <div id="file_error" style="color:red;">{{ form.errors.picture }}</div>
+                <div class="field_wrapper"> 
+		            <label for="id_picture" style="float:left;">Выберите изображение:</label>{{ form.picture }}
+                    <br class="clear" />
+                </div>
+
+	            <div class="field_wrapper"> 
+		            <label for="id_first_name">Имя:</label>{{ form.first_name }}
+		            <br class="clear" />
+	            </div>
+	            <div class="field_wrapper"> 
+		            <label for="id_last_name">Фамилия:</label>{{ form.last_name }}
+		            <br class="clear" />
+	            </div>
+                <input type="submit" value="Сохранить" class="bright_button"/>
+            </fieldset>
+        </form><br /><br />
+    Введенные данные будут доступны всем пользователям. <br />Для изменения пароля перейдите <a href="{% url prospere_password_change %}">сюда.</a>
+    </div>
+    {% include "segments/upload_progress.html" %}
+{% endblock %}

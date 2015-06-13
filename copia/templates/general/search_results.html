@@ -1,0 +1,99 @@
+{% extends "frame.html" %}
+{% block head %}
+<style type="text/css">
+    h2{text-align:center;}
+    .found_document{
+        margin-bottom : 15px;
+    }
+        .found_document p{
+            padding : 0px;
+            margin : 0px;
+        }
+        .found_document .path{
+            color:#2e312f;
+	    }
+        .found_document .title{
+            font-size: 1.4em;
+        }
+        a:link.document_owner , a:visited.document_owner {font-size: 1.2em;color:#4c4c4c;}
+            a:hover.document_owner {color:#222323; background:transparent;}
+    .user{margin-bottom:10px;}
+        .user a:link.username, .user a:visited.username{font-size: 1.4em;color:#292a29;padding-right:5px;}
+
+    .choise_button{background:#F2F2EA;height: 25px;font:1.1em Times New Roman, serif;
+                    display:block;border: 0px; color:#272727;cursor:pointer;text-align:left;padding-left:30px;padding-top:3px;}
+    .selected{background: #589642;border:1px solid #81aa71;color:white;height: 23px;padding-left:29px;padding-top:2px;
+            -webkit-border-radius : 5px; -moz-border-radius : 5px; border-radius : 5px;
+            -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.1);
+            -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.1);}
+</style>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#show_documents').click(function(){
+            $('#documents_list').show();
+            $('#show_documents').addClass('selected');
+            $('#show_users').removeClass('selected');
+            $('#users_list').hide();
+        });
+    });
+    $(document).ready(function(){
+        $('#show_users').click(function(){
+            $('#documents_list').hide();
+            $('#show_users').addClass('selected');
+            $('#show_documents').removeClass('selected');
+            $('#users_list').show();
+        });
+    });
+</script>
+{% endblock %}
+
+{% block panel_leftside %}
+    {% include "segments/panel_searcher.html" %}
+{% endblock %}
+
+{% block basis%}
+
+    <div id="leftside">
+        {% if users %}
+            <div id="show_documents" class="choise_button selected" style="margin-bottom:5px;margin-top:3px;">Документы</div>
+            <div id="show_users" class="choise_button">Пользователи</div><br />
+        {% else %}
+            <div id="show_documents" class="choise_button selected" style="margin-top:0px;">Документы</div>
+        {% endif %}
+    </div>
+
+    <div id="content">
+        {% load copia_filters %}
+        <div id="documents_list">
+            {% include "segments/paginator.html" %}
+            {% for document in documents %}
+                <div class="found_document">
+		            <a class="title" href="{% url prospere_document document.id %}">{{ document.title }}</a>
+                    <div class="path">
+                        <a class="document_owner" href="{% url prospere_user_page document.username %}">
+                                {{ document.username }}</a>{% for section in document.path %} - {{ section.caption }}{% endfor %}
+                 
+                    </div>
+                    {% autoescape off %}<p class="small_text">{{ document.description|drop_string|safe }}</p>{% endautoescape %}
+                </div>
+            {% empty %}
+                <div class="error"><p>Поиск не дал результатов</p></div>
+            {% endfor %}
+            {% include "segments/paginator.html" %}
+        </div>
+        <div id="users_list" class="not_visible">
+            {% include "segments/paginator.html" %}
+            {% for user in users %}
+                <div class="user">
+                    <a class="username" href="{% url prospere_user_page user.username %}">{{ user.username }}</a>
+                    <span style="color:#4a4b4a;">{{user.first_name}} {{user.last_name}}</span>
+                    <div>{{user.description}}</div>
+                </div>
+            {% empty %}
+                <div class="error"><p>Поиск не дал результатов</p></div>
+            {% endfor %}
+            {% include "segments/paginator.html" %}
+        </div>
+    </div>
+{% endblock %}

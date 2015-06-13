@@ -1,0 +1,36 @@
+﻿{% extends "big_canvas.html" %}
+
+{% block head %}
+<style type="text/css">
+    #change_passwd {text-align:center;color:#222a20;}
+    #change_passwd form {width:700px;margin:0 auto 0 auto; text-align:left;}
+</style>
+{% endblock %}
+{% block content %}
+{% if validlink %}
+    <div id="change_passwd">
+        <div class="note_box"><p>Изменение пароля</p></div>
+	    <form action="" method="post">
+            <fieldset>{% csrf_token %}
+		        <div class="field_wrapper">
+			        <label for="id_new_password1">Новый пароль:</label>
+			        {{ form.new_password1 }}
+			        <div class="field_error"></div>
+			        <br class="clear" />
+		        </div>
+		        <div class="field_wrapper">
+			        <label for="id_new_password2">Подтверждение пароля.</label>
+			        {{ form.new_password2 }}
+			        <div class="field_error">{{ form.errors.new_password2 }}</div>
+			        <br class="clear" />
+		        </div>
+		        <input type="submit" class="bright_button" value="Сохранить" />
+            </fieldset>
+	    </form>
+    </div>
+{% else %}
+<div class="error">
+	<p>Произошла ошибка! Возможно неверный код.</p>
+</div>
+{% endif %}
+{% endblock %}

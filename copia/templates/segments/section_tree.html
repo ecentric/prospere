@@ -1,0 +1,10 @@
+{# requred section_nodes #}
+<div class="section_tree">    
+    <ul>
+    {% for node in section_nodes %} {% if node.is_begin %}<li style="list-style-type:none;"><ul>{% endif %}{% if node.is_end %}</ul></li>{% endif %}
+        {% if node.is_section %}
+            <li><a href="/section/{{ node.section.id }}/">{{ node.section.caption }}</a></li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+</div>

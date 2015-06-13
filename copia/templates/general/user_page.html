@@ -1,0 +1,209 @@
+{% extends "user_canvas.html" %}
+{% block head %}
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.blockUI.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.storage_tree.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}js/jquery.comments_tree.js"></script>
+    <script type="text/javascript">
+        // for notification
+        //var comment_tree;
+        $(document).ready(function(){
+            function change_chock_state(selector){
+                if ($(selector).is(':visible')) $(selector).hide(200);
+                else $(selector).show(200);
+            }
+            //var mes_timer = setInterval(function() { $("#message").hide(300); clearInterval(mes_timer); }, 4000);
+            $("#message").hover(function(){$("#message").hide(300)});
+            $('#document_chock_caption').click(
+                function(){change_chock_state('#document_chock')});
+            $('#tree_chock_caption').click(
+                function(){change_chock_state('#tree_chock')});
+            $('#document_chock').hide();
+            /* comments */
+			document.comment_tree = $('#comments').comments_tree({
+                get_comments_url: '{% url prospere_get_comment_tree content_type user.id %}',
+                post_fields : {% autoescape off %}{{ comment_form.json_hidden }}{% endautoescape %},
+                post_comment_url : '{% url prospere_post_comment_ajax %}',
+                edit_comment_url : '{% url prospere_edit_comment_ajax %}',
+                delete_comment_url : '{% url prospere_delete_comment_ajax %}',
+                user_id : {% if request.user.is_authenticated %} {{ request.user.id }} {% else %} false {% endif %}, 
+                absolute_permission : {% if user == request.user %} true {% else %} false {% endif %},
+                csrf : '{{ csrf }}',
+                is_authenticated : {% if request.user.is_authenticated %} true {% else %} false {% endif %} 
+            });
+
+		    $('#tree').storage_tree({
+                storage_id : '{{ storage.id }}',
+                storage_mem_limit : {{ storage.mem_limit }},
+                storage_state_selector: '#storage_state',
+                read_only: {% if user == request.user %} false {% else %} true {% endif %},
+                url_get_tree : '{% url prospere_get_storage_tree %}',
+                url_delete_section : "{% url prospere_delete_section %}",
+                url_add_section : "{% url prospere_add_section %}",
+                url_edit_section : "{% url prospere_edit_section %}",
+                url_delete_document : "{% url prospere_delete_document %}",
+                url_change_folder_access : "{% url prospere_change_section_access %}",
+                url_change_document_access : "{% url prospere_change_document_access %}",
+                freeze_selector : "#tree_chock",
+                csrf : "{{ csrf }}"
+            });
+        })
+    </script>
+    <style type="text/css">
+        table thead #edit{ width:100px; }
+        table thead #delete{ width:100px; }
+        table img{ border:none; }
+
+        #storage_state{color:#606461; right:5px;padding-left:10px;}
+        #tree {font:normal 1.1em Times New Roman, serif;}
+        #tree .Container {padding: 0; margin: 0;}
+        #tree .Container li {list-style-type: none;}
+        /* indent for all tree children excepts root */
+        #tree .Node {
+            background-image : url({{ STATIC_URL }}images/tree/i.gif);
+            background-position : top left;
+            background-repeat : repeat-y;
+            margin-left: 18px;
+            zoom: 1;
+        }
+        #tree .IsRoot { margin-left: 0;}
+        /* left vertical line (grid) for all nodes */
+        #tree .IsLast {
+            background-image: url({{ STATIC_URL }}images/tree/i_half.gif);
+            background-repeat : no-repeat;
+        } 
+        #tree .ExpandOpen .Expand {
+            background-image: url({{ STATIC_URL }}images/tree/expand_minus.gif);
+        } 
+        /* closed is higher priority than open */
+        #tree .ExpandClosed .Expand { background-image: url({{ STATIC_URL }}images/tree/expand_plus.gif); } 
+        /* highest priority */
+        #tree .ExpandLeaf .Expand { background-image: url({{ STATIC_URL }}images/tree/expand_leaf.gif); }
+
+        #tree .ContentLeaf { min-height: 18px; margin-left:18px;cursor: pointer; font-weight:bold; color:#3a3a3a;}
+        #tree .ContentDir { min-height: 18px; margin-left:18px; color:#b0761c; cursor: pointer; font-weight:bold;}
+        #tree .light { font-weight:normal;}
+        #tree .HiddenLeaf {color:#3a3a3a; font-weight:normal;}
+        #tree .HiddenDir {color:#967239; font-weight:normal;}
+
+        #tree .Content {cursor: pointer;}
+        #tree .Expand { width: 18px; height: 18px; float: left; }
+        #tree .ExpandLoading   {
+            width: 18px; height: 18px;
+            float: left;
+            background-image: url({{ STATIC_URL }}images/tree/expand_loading.gif);
+        }
+        #tree .ExpandOpen .Container {display: block;}
+        #tree .ExpandClosed .Container {display: none;}
+        #tree .ExpandOpen .Expand, .ExpandClosed .Expand { cursor: pointer; }
+        #tree .ExpandLeaf .Expand {	cursor: auto;}
+
+        #node_panel{}
+        #node_panel #edit_folder{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) 0px 0px;
+                                width:25px;height:25px;float:left;}
+        #node_panel #add_folder{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) -25px 0px;
+                                width:25px;height:25px;float:left;}
+        #node_panel #delete_folder{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) -50px 0px;
+                                  width:25px;height:25px;float:left;}
+        #node_panel #hide_folder{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) -100px 0px;
+                                  width:25px;height:25px;float:left;}
+        #node_panel #share_folder{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) -75px 0px;
+                                  width:25px;height:25px;float:left;}
+        #node_panel #add_document{background: transparent url({{ STATIC_URL }}images/tree/folder_panel.png) -125px 0px;
+                                  width:25px;height:25px;float:left;}
+
+        #node_panel #download_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) 0px 0px;
+                                width:25px;height:25px;float:left;background-color:transparent;}
+        #node_panel #show_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) -25px 0px;
+                                width:25px;height:25px;float:left;background-color:transparent;}
+        #node_panel #edit_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) -50px 0px;
+                                width:25px;height:25px;float:left;background-color:transparent;}
+        #node_panel #delete_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) -75px 0px;
+                                width:25px;height:25px;float:left;background-color:transparent;}
+        #node_panel #hide_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) -125px 0px;
+                                  width:25px;height:25px;float:left;}
+        #node_panel #share_document{background: transparent url({{ STATIC_URL }}images/tree/document_panel.png) -100px 0px;
+                                  width:25px;height:25px;float:left;}
+
+        #node_panel input{width:200px;height:17px;}
+        #node_panel #save_section{background-image: url({{ STATIC_URL }}images/tree/tick.png);
+                          height:19px;width:24px;float:left;margin-left:5px;}
+        #node_panel #panel_error{color:#b40000;}
+
+        .chock{ margin-bottom:10px; overflow: hidden; zoom:1; margin:0px; border : 1px solid #aaaaaa;
+                -khtml-border-radius : 5px; -webkit-border-radius : 5px; -moz-border-radius : 5px; border-radius : 5px;}
+        .note_container{border : 1px solid #b7b7b4;margin-bottom:10px;}
+        .container_caption{ padding-left : 3px; color : white; background-color : #5a5a5a; font-weight: bold;
+                            height:28px; font: 0.9em Arial, sans-serif; font-weight: 300; }
+        .container_substance{overflow: hidden;padding:5px;padding-left:10px;padding-top:10px;}
+        .container_chock {}
+
+        #hint {font: normal 0.9em Times New Roman, serif; color:#5c5c5b;}
+
+        .document{margin-bottom : 5px;}
+            .found_document p{
+                padding : 0px;
+                margin : 0px;
+            }
+            .document .path{color:#606461;}
+            .document .title{font-size: 1.4em;color:#292a29;}
+	    .document .control_panel{display:inline-block;}
+	    .document .control_panel .text{font:normal 0.8em Times New Roman, serif;padding: 4px 15px;color:#606461;}
+            
+        #documents_container .container_caption{cursor: pointer;}
+
+        #document_chock{font:normal 1.1em Times New Roman, serif;}
+        #comments{font:normal 1.1em Times New Roman, serif;}
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% load copia_filters %}
+	{% if message %}
+		<div id="message" class="{{ message.level }}">
+			<p>{{ message.text }}</p>
+		</div>
+	{% endif %}
+
+    <div class="chock shadow-box">
+        <div class="container_caption" id="tree_chock_caption" style="cursor:pointer;">
+                <div style="padding-top:6px;padding-left:11px;">Дерево файлов.</div></div>
+        <div class="container_chock" id="tree_chock" style="zoom:1;overflow: hidden;">
+            <div class="container_substance">
+                <div id="tree">
+                    <div id="root_content" class="Content">Корень {{ storage.title }}
+                        <span id="hint" class="not_visible"> - кликните для создания папки.</span>
+                        <span id="storage_state" style=""></span>
+                    </div>
+                    <ul class="Container" id="container_node_0"></ul>
+                </div>
+            </div>
+        </div>
+    </div><br />
+
+    {% if documents %}
+        <div class="chock shadow-box">
+            <div class="container_caption" id="document_chock_caption" style="cursor:pointer;">
+                <div style="padding-top:6px;padding-left:11px;">Последние файлы.</div></div>
+            <div class="container_chock" id="document_chock">
+                <div class="container_substance">
+                {% for document in documents %}
+                    <div class="document">
+		                <a class="title" href="{% url prospere_document document.id %}">{{ document.title }}</a>
+                        <div class="path">
+                            путь{% for section in document.path %} - {{ section.caption }}{% endfor %}
+                        </div>
+                        {% autoescape off %}<div>{{ document.description|drop_string|safe }}</div>{% endautoescape %}
+                        <div class="control_panel">
+                        	<a class="l" href="{{ document.file_url }}">Скачать</a>
+                        	<div class="text l">{{ document.file_size|convert_byte }}mB - {{ document.creation_date }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    <br />
+    {% endif %}
+
+    <div id="comments"></div>
+{% endblock %}

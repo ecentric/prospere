@@ -1,0 +1,12 @@
+{# requred num_pages, current_page, pages #}
+
+<div class="paginator">
+{% ifnotequal num_pages 1 %}
+{% load copia_filters %}
+{% for page in pages %}
+	{% ifequal current_page page %}{{ page }}{% else %}
+	<a href="{{ current_url|set_get_argument:"page" }}{{ page }}">{{ page }}</a>
+	{% endifequal %}
+{% endfor %}
+{% endifnotequal %}
+</div>
